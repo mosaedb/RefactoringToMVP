@@ -6,11 +6,11 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ReopsInteractorImpl implements ReopsInteractor {
+public class ReposInteractorImpl implements ReposInteractor {
 
     private GitHubService service;
 
-    public ReopsInteractorImpl() {
+    public ReposInteractorImpl() {
         // Configure Retrofit
         // (A proper way of doing this would be via Dependency Injection)
         Retrofit retrofit = new Retrofit.Builder()
