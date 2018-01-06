@@ -10,25 +10,19 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ReposView {
 
     EditText editText;
     ImageButton imageButton;
     ReposAdapter adapter;
     ListView listView;
     TextView textNoDataFound;
-    ReopsInteractor interactor;
+    ReposPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        interactor = new ReopsInteractorImpl(); // (a good solution would use Dependency Injection instead)
 
         editText = findViewById(R.id.editText);
         imageButton = findViewById(R.id.imageButton);
@@ -42,30 +36,27 @@ public class MainActivity extends AppCompatActivity {
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                performSearch();
+                presenter.performSearch(getUserInput());
             }
         });
+
+        // Note: Don't do this on production code, use Dependency Injection instead
+        // to provide the BooksInteractor and the BooksPresenter to the View
+        // Learn how to use Dagger 2 here:
+        // https://medium.com/@Miqubel/understanding-dagger-2-367ff1bd184f#.s2jza32df
+        ReposInteractor interactor = new ReposInteractorImpl();
+        presenter = new ReposPresenter(interactor);
+        presenter.bind(this);
     }
 
-    private void performSearch() {
-        String githubUsername = getUserInput().trim().replaceAll("\\s+", "");
-        // Just call the method on the GitHubService
-        interactor.listRepos(githubUsername)
-                // enqueue runs the request on a separate thread
-                .enqueue(new Callback<List<Repo>>() {
-                    @Override
-                    public void onResponse(Call<List<Repo>> call, Response<List<Repo>> repos) {
-                        updateUi(repos.body());
-                    }
-
-                    @Override
-                    public void onFailure(Call<List<Repo>> call, Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
+    @Override
+    protected void onDestroy() {
+        presenter.unbind();
+        super.onDestroy();
     }
 
-    private void updateUi(List<Repo> repos) {
+    @Override
+    public void updateUi(List<Repo> repos) {
         if (repos == null || repos.isEmpty()) {
             textNoDataFound.setVisibility(View.VISIBLE);
         } else {
