@@ -13,8 +13,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,24 +21,19 @@ public class MainActivity extends AppCompatActivity {
     ReposAdapter adapter;
     ListView listView;
     TextView textNoDataFound;
-    GitHubService service;
+    ReopsInteractor interactor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        interactor = new ReopsInteractorImpl(); // (a good solution would use Dependency Injection instead)
+
         editText = findViewById(R.id.editText);
         imageButton = findViewById(R.id.imageButton);
         textNoDataFound = findViewById(R.id.text_no_data_found);
         listView = findViewById(R.id.listView);
-
-        // Configure Retrofit
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.github.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        service = retrofit.create(GitHubService.class);
 
         adapter = new ReposAdapter(this);
 
@@ -57,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private void performSearch() {
         String githubUsername = getUserInput().trim().replaceAll("\\s+", "");
         // Just call the method on the GitHubService
-        service.listRepos(githubUsername)
+        interactor.listRepos(githubUsername)
                 // enqueue runs the request on a separate thread
                 .enqueue(new Callback<List<Repo>>() {
                     @Override
